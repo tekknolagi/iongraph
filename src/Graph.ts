@@ -1418,7 +1418,7 @@ export class Graph {
     row.appendChild(num);
 
     const opcode = document.createElement("td");
-    const pieces = prettyOpcode.split(/([A-Za-z0-9_]+)#(\d+)/);
+    const pieces = prettyOpcode.split(/(v)(\d+)/);
     for (let i = 0; i < pieces.length; i += 3) {
       const plain = pieces[i];
       const insName: string | undefined = pieces[i + 1];
@@ -1429,7 +1429,7 @@ export class Graph {
         const ins = document.createElement("span");
         ins.classList.add("ig-use", "ig-highlightable");
         ins.setAttribute("data-ig-use", `${insID}`);
-        ins.innerText = `${insName}#${insID}`;
+        ins.innerText = `${insName}${insID}`;
         opcode.appendChild(ins);
       }
     }
