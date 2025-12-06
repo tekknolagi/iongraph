@@ -156,6 +156,18 @@ export interface GraphOptions {
    * encouraged to use CSS variables here.
    */
   instructionPalette?: string[],
+
+  /*
+   * A pattern to look for in the stringified instruction that returns the
+   * opcode name and its instructino ID.
+   */
+  opcodePattern?: string,
+
+  /*
+   * A template function to use when rendering opcodes. The first argument is
+   * the opcode name and the second argument is the opcode's ID.
+   */
+  opcodeTemplate?: (name: string, id: number) => string,
 }
 
 export class Graph {
@@ -181,6 +193,8 @@ export class Graph {
   sampleCounts: SampleCounts | undefined;
   maxSampleCounts: [number, number]; // [total, self]
   heatmapMode: number; // SC_TOTAL or SC_SELF
+  opcodePattern: RegExp;
+  opcodeTemplate: (name: string, id: number) => string;
 
   //
   // Post-layout info
@@ -238,6 +252,9 @@ export class Graph {
     this.sampleCounts = options.sampleCounts;
     this.maxSampleCounts = [0, 0];
     this.heatmapMode = SC_TOTAL;
+
+    this.opcodePattern = new RegExp(options.opcodePattern ?? String.raw`([A-Za-z0-9_]+)#(\d+)`, "g");
+    this.opcodeTemplate = options.opcodeTemplate ?? ((name: string, id: number) => `${name}#${id}`);
 
     for (const [ins, count] of this.sampleCounts?.totalLineHits ?? []) {
       this.maxSampleCounts[SC_TOTAL] = Math.max(this.maxSampleCounts[SC_TOTAL], count);
@@ -1329,8 +1346,8 @@ export class Graph {
     row.appendChild(num);
 
     const opcode = document.createElement("td");
-    opcode.innerHTML = prettyOpcode.replace(/([A-Za-z0-9_]+)#(\d+)/g, (_, name, id) => {
-      return `<span class="ig-use ig-highlightable" data-ig-use="${id}">${name}#${id}</span>`;
+    opcode.innerHTML = prettyOpcode.replace(this.opcodePattern, (_, name, id) => {
+      return `<span class="ig-use ig-highlightable" data-ig-use="${id}">${this.opcodeTemplate(name, id)}</span>`;
     });
     row.appendChild(opcode);
 
